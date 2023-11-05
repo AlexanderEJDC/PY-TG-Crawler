@@ -92,3 +92,6 @@ telegram.jpg
 
 # virtual env
 venv*
+
+#Files Stored Locally
+ECA.jpg
