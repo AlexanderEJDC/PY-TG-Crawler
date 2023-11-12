@@ -1,8 +1,8 @@
 import logging
 import asyncio
 import telegram
-from telegram import Update, File, Document, Message
-from telegram.ext import CommandHandler, MessageHandler, filters, ApplicationBuilder, ContextTypes 
+from telegram import Update
+from telegram.ext import MessageHandler, filters, ApplicationBuilder, ContextTypes
 
 #Configure Logging module - use level=logging.DEBUG for more verbose info.
 logging.basicConfig(
@@ -10,20 +10,26 @@ logging.basicConfig(
     level=logging.DEBUG
 )
 
-#async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#    await context.bot.send_message(
-#        chat_id=update.effective_chat.id, 
-#        text="The Bot Is Starting")
-
+async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(chat_id=update.effective_chat.id, 
+                                   text="I have recieved your response")
     
-async def main():
-    bot = telegram.Bot('6460026166:AAFf7Wv93Cpa9YUFtsZ0E-AJfmFgKGDx_1s')
-    async with bot:
-        print((await bot.send_message(text="This sends a file", chat_id=6343314843)))
-        await bot.send_document(chat_id=6343314843, document='ECA.jpg')
+async def file_download(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    incom_file = await update.message.effective_attachment.get_file()
+    await incom_file.download_to_drive('recieved_file')
+    await context.bot.send_message(chat_id=update.effective_chat.id,
+                                   text="File recieved!")
 
-        receivedFile = await message.effective_attachment.get_file()
-        await new_file.download_to_drive('TGFile') 
-
+#Actual "Main" - runs handlers & bot!
 if __name__ == '__main__':
-    asyncio.run(main())
+    #Application builder. On its own, doesn't do anything.
+    application = ApplicationBuilder().token(
+        '6460026166:AAFf7Wv93Cpa9YUFtsZ0E-AJfmFgKGDx_1s').build()
+    
+    file_handler = MessageHandler(filters.ATTACHMENT & (~filters.COMMAND), file_download)
+    echo_handler = MessageHandler(filters.ALL & (~filters.COMMAND), echo)
+
+    application.add_handler(file_handler)
+    application.add_handler(echo_handler)
+
+    application.run_polling()  #Run until Cntrl-C! 
